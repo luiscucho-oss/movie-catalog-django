@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Cinemateca{% endblock %}</title>
+  <style>
+    :root { --bg:#f6f5f2; --card:#fff; --ink:#1f2328; --muted:#636c76; --accent:#b4441f; --line:#e3e1dc; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:var(--ink); }
+    header { background:var(--ink); color:#fff; padding:14px 24px; }
+    header a { color:#fff; text-decoration:none; font-weight:700; }
+    main { max-width:960px; margin:0 auto; padding:24px; }
+    h1 { margin:0 0 4px; }
+    .muted { color:var(--muted); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px; margin-top:20px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+    .card h3 { margin:0 0 6px; font-size:1.05rem; }
+    .card a { color:var(--accent); text-decoration:none; }
+    .tag { display:inline-block; font-size:.75rem; background:var(--bg); border:1px solid var(--line); border-radius:999px; padding:2px 8px; margin:2px 2px 0 0; }
+    .score { font-weight:700; color:var(--accent); }
+    .rank { font-size:.8rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header><a href="{% url 'movies:list' %}">🎬 Cinemateca</a></header>
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>

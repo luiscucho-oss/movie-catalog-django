@@ -1,0 +1,23 @@
+{% extends "movies/base.html" %}
+{% block title %}Recomendaciones · {{ movie.title }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'movies:list' %}">← Volver al catálogo</a></p>
+<h1>Si te gustó «{{ movie.title }}»</h1>
+<p class="muted">{{ movie.year }}{% if movie.director %} · {{ movie.director }}{% endif %} ·
+  {% for genre in movie.genres.all %}<span class="tag">{{ genre }}</span>{% endfor %}</p>
+<h2>Las mejor valoradas del mismo género</h2>
+<div class="grid">
+  {% for rec in recommended %}
+  <div class="card">
+    <div class="rank">#{{ forloop.counter }}</div>
+    <h3><a href="{% url 'movies:recommendations' rec.pk %}">{{ rec.title }}</a></h3>
+    <div class="muted">{{ rec.year }}</div>
+    <div>{% for genre in rec.genres.all %}<span class="tag">{{ genre }}</span>{% endfor %}</div>
+    <p><span class="score">{{ rec.avg_score|floatformat:1 }} ★</span>
+      <span class="muted">({{ rec.ratings_count }} valoraciones)</span></p>
+  </div>
+  {% empty %}
+  <p class="muted">Todavía no hay películas valoradas del mismo género.</p>
+  {% endfor %}
+</div>
+{% endblock %}

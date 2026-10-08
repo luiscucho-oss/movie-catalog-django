@@ -1,0 +1,18 @@
+{% extends "movies/base.html" %}
+{% block content %}
+<h1>Catálogo de películas</h1>
+<p class="muted">Elige una película para ver recomendaciones del mismo género.</p>
+<div class="grid">
+  {% for movie in movies %}
+  <div class="card">
+    <h3><a href="{% url 'movies:recommendations' movie.pk %}">{{ movie.title }}</a></h3>
+    <div class="muted">{{ movie.year }}{% if movie.director %} · {{ movie.director }}{% endif %}</div>
+    <div>{% for genre in movie.genres.all %}<span class="tag">{{ genre }}</span>{% endfor %}</div>
+    <p>{% if movie.avg_score %}<span class="score">{{ movie.avg_score|floatformat:1 }} ★</span>
+      <span class="muted">({{ movie.ratings_count }} valoraciones)</span>{% else %}<span class="muted">Sin valoraciones</span>{% endif %}</p>
+  </div>
+  {% empty %}
+  <p>No hay películas todavía.</p>
+  {% endfor %}
+</div>
+{% endblock %}
