@@ -93,6 +93,55 @@ class AdminAndRolesTests(TestCase):
         self.assertEqual(self.client.get(delete_url).status_code, 403)
         self.assertEqual(self.client.get(reverse("admin:auth_user_changelist")).status_code, 403)
 
+    def test_moderator_only_manages_ratings(self):
+        moderator = User.objects.get(username="moderador")
+        self.assertTrue(moderator.groups.filter(name="moderadores").exists())
+        self.assertFalse(moderator.is_superuser)
+        self.client.force_login(moderator)
+
+        # Puede revisar y eliminar valoraciones...
+        rating = Rating.objects.first()
+        self.assertEqual(
+            self.client.get(reverse("admin:movies_rating_changelist")).status_code, 200
+        )
+        self.assertEqual(
+            self.client.get(
+                reverse("admin:movies_rating_delete", args=[rating.pk])
+            ).status_code,
+            200,
+        )
+
+        # ...consulta las películas sin poder guardarlas...
+        change_url = reverse("admin:movies_movie_change", args=[self.movie.pk])
+        response = self.client.get(change_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'name="_save"')
+
+        # ...y no puede crear ni borrar películas, ni ver géneros, personas o usuarios.
+        forbidden = [
+            reverse("admin:movies_movie_add"),
+            reverse("admin:movies_movie_delete", args=[self.movie.pk]),
+            reverse("admin:movies_genre_changelist"),
+            reverse("admin:movies_person_changelist"),
+            reverse("admin:auth_user_changelist"),
+        ]
+        for url in forbidden:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 403)
+
+    def test_person_role_filter(self):
+        admin = User.objects.create_superuser("root", "r@x.com", "pass")
+        self.client.force_login(admin)
+        url = reverse("admin:movies_person_changelist")
+
+        directors = self.client.get(url, {"rol": "director"})
+        self.assertContains(directors, "Hayao Miyazaki")
+        self.assertNotContains(directors, "Leonardo DiCaprio")
+
+        cast = self.client.get(url, {"rol": "reparto"})
+        self.assertContains(cast, "Leonardo DiCaprio")
+        self.assertNotContains(cast, "Hayao Miyazaki")
+
     def test_superuser_sees_delete_and_readonly_audit_fields(self):
         admin = User.objects.create_superuser("root", "r@x.com", "pass")
         self.client.force_login(admin)

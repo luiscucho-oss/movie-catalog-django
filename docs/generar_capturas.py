@@ -6,6 +6,7 @@ seed_movies y setup_roles. Uso:
     python docs/generar_capturas.py antes   docs/capturas  # con el admin.py básico
     python docs/generar_capturas.py crud    docs/capturas
     python docs/generar_capturas.py despues docs/capturas
+    python docs/generar_capturas.py roles   docs/capturas
 
 Variable opcional CHROMIUM_PATH para usar un Chromium ya instalado.
 """
@@ -61,6 +62,19 @@ with sync_playwright() as p:
         shot(page, "crud-3-confirmar-eliminar", full=False)
         page.click("input[type=submit]")
         shot(page, "crud-4-eliminado", full=False)
+
+    elif MODE == "roles":
+        # Filtro por rol en personas y vista del grupo «moderadores».
+        login(page, "admin", "admin12345")
+        page.goto(f"{BASE}/admin/movies/person/?rol=director")
+        shot(page, "03b-personas-filtro-rol", full=False)
+
+        login(page, "moderador", "moderador12345")
+        shot(page, "07b-moderador-inicio", full=False)
+        page.goto(f"{BASE}/admin/movies/rating/")
+        shot(page, "07c-moderador-valoraciones", full=False)
+        page.goto(f"{BASE}/admin/movies/movie/1/change/")
+        shot(page, "07d-moderador-pelicula-solo-lectura")
 
     else:
         login(page, "admin", "admin12345")

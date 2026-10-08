@@ -91,17 +91,59 @@ class GenreAdmin(admin.ModelAdmin):
         return obj._movie_count
 
 
+class PersonRoleFilter(admin.SimpleListFilter):
+    """Separa a quienes dirigen de quienes actúan, que es como se busca a una persona."""
+
+    title = "rol"
+    parameter_name = "rol"
+
+    def lookups(self, request, model_admin):
+        return [("director", "Dirección"), ("reparto", "Reparto")]
+
+    def queryset(self, request, queryset):
+        if self.value() == "director":
+            return queryset.filter(_directed_count__gt=0)
+        if self.value() == "reparto":
+            return queryset.filter(_acted_count__gt=0)
+        return queryset
+
+
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ("name", "birth_date")
-    list_filter = ("birth_date",)
+    list_display = ("name", "birth_date", "directed_count", "acted_count")
+    list_filter = (PersonRoleFilter,)
     search_fields = ("name",)
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                _directed_count=Count("directed_movies", distinct=True),
+                _acted_count=Count("acted_movies", distinct=True),
+            )
+        )
+
+    @admin.display(description="películas dirigidas", ordering="_directed_count")
+    def directed_count(self, obj):
+        return obj._directed_count
+
+    @admin.display(description="películas en reparto", ordering="_acted_count")
+    def acted_count(self, obj):
+        return obj._acted_count
 
 
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):
-    list_display = ("movie", "reviewer", "score", "created_at")
+    list_display = ("movie", "reviewer", "score", "short_comment", "created_at")
     list_filter = ("score", "movie__genres")
-    search_fields = ("movie__title", "reviewer")
+    search_fields = ("movie__title", "reviewer", "comment")
     autocomplete_fields = ("movie",)
     readonly_fields = ("created_at",)
+
+    @admin.display(description="comentario")
+    def short_comment(self, obj):
+        # Permite moderar desde el listado sin abrir cada valoración.
+        if len(obj.comment) > 60:
+            return f"{obj.comment[:60]}…"
+        return obj.comment or "—"
