@@ -1,4 +1,6 @@
+from django import forms
 from django.contrib import admin
+from django.db import models
 from django.db.models import Avg, Count
 
 from .models import Genre, Movie, Person, Rating
@@ -15,6 +17,9 @@ class RatingInline(admin.TabularInline):
     extra = 1
     fields = ("reviewer", "score", "comment", "created_at")
     readonly_fields = ("created_at",)
+    formfield_overrides = {
+        models.TextField: {"widget": forms.Textarea(attrs={"rows": 2, "cols": 50})},
+    }
 
 
 @admin.register(Movie)
